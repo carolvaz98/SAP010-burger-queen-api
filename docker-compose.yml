@@ -1,20 +1,24 @@
-version: "3"
 services:
   db:
-    # TODO: configura tu imagen de base de datos, te recomendamos una de estas:
-    # https://hub.docker.com/_/mongo
-    # https://hub.docker.com/_/postgres
-    # https://hub.docker.com/_/mysql
+    image: mysql:5.7 # Utilizando a imagem oficial do MySQL versão 5.7
+    command: --default-authentication-plugin=mysql_native_password # Necessário para compatibilidade com algumas bibliotecas Node.js
+    restart: always # Reinicia o contêiner automaticamente em caso de falha ou reinicialização do host
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-root-password
+      MYSQL_DATABASE: my-database
+      MYSQL_USER: my-user
+      MYSQL_PASSWORD: my-password
     networks:
       - private
+
   node:
-    image: node:12 # https://hub.docker.com/_/node/
+    image: node:12
     user: node
     working_dir: /home/node/app
     environment:
       NODE_ENV: production
       PORT: 8080
-      DB_URL: <CONNECTION STRING>
+      DB_URL: mysql://my-user:my-password@db/my-database
       JWT_SECRET: xxxxxxxx
       ADMIN_EMAIL: admin@localhost
       ADMIN_PASSWORD: changeme
@@ -25,7 +29,7 @@ services:
     ports:
       # mapeamos el puerto 8080 de nuestro contenedor al puerto 80 de nuestra
       # máquina
-      - 80:8080
+      - 8081:8080
     # reinstalamos las dependencias y levantamos el servidor
     command: bash -c 'rm -rf node_modules && npm install && npm start'
     depends_on:
