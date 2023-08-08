@@ -4,10 +4,10 @@ services:
     command: --default-authentication-plugin=mysql_native_password # Necessário para compatibilidade com algumas bibliotecas Node.js
     restart: always # Reinicia o contêiner automaticamente em caso de falha ou reinicialização do host
     environment:
-      MYSQL_ROOT_PASSWORD: my-secret-root-password
-      MYSQL_DATABASE: my-database
-      MYSQL_USER: my-user
-      MYSQL_PASSWORD: my-password
+      MYSQL_ROOT_PASSWORD: senha_123
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: root
+      MYSQL_PASSWORD: senha_123
     networks:
       - private
 
@@ -18,7 +18,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8080
-      DB_URL: mysql://my-user:my-password@db/my-database
+      DB_URL: mysql://root:senha_123@db/mydatabase
       JWT_SECRET: xxxxxxxx
       ADMIN_EMAIL: admin@localhost
       ADMIN_PASSWORD: changeme
