@@ -1,7 +1,19 @@
-// Configurar parâmetros como porta, URLs do banco de dados, chaves secretas, etc.
+require('dotenv').config();
 
-exports.port = process.argv[2] || process.env.PORT || 8080;
-exports.dbUrl = process.env.DB_URL || 'mysql://root:senha_123@db/mydatabase';
-exports.secret = process.env.JWT_SECRET || 'esta-es-la-api-burger-queen';
-exports.adminEmail = process.env.ADMIN_EMAIL || 'admin@localhost';
-exports.adminPassword = process.env.ADMIN_PASSWORD || 'changeme';
+const dbConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  dialect: process.env.DB_DIALECT,
+};
+
+const secret = process.env.JWT_SECRET;
+const port = process.env.PORT || 8080;
+
+module.exports = {
+  dbConfig,
+  secret,
+  port,
+};

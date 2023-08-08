@@ -2,13 +2,13 @@
 
 services:
   db:
-    image: mysql:5.7 # Utilizando a imagem oficial do MySQL versão 5.7
-    command: --default-authentication-plugin=mysql_native_password # Necessário para compatibilidade com algumas bibliotecas Node.js
+    image: mysql:5.7 # MySQL versão 5.7
+    command: --default-authentication-plugin=mysql_native_password # Para compatibilidade com algumas bibliotecas Node.js
     restart: always # Reinicia o contêiner automaticamente em caso de falha ou reinicialização do host
     environment:
       MYSQL_ROOT_PASSWORD: senha_123
       MYSQL_DATABASE: mydatabase
-      MYSQL_USER: root
+      MYSQL_USER: rote_db
       MYSQL_PASSWORD: senha_123
     networks:
       - private
@@ -20,7 +20,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8080
-      DB_URL: mysql://root:senha_123@db/mydatabase
+      DB_URL: mysql://rote_db:senha_123@db/mydatabase
       JWT_SECRET: xxxxxxxx
       ADMIN_EMAIL: admin@localhost
       ADMIN_PASSWORD: changeme
@@ -31,7 +31,7 @@ services:
     ports:
       # mapeamos el puerto 8080 de nuestro contenedor al puerto 80 de nuestra
       # máquina
-      - 8081:8080
+      - 80:8080
     # reinstalamos las dependencias y levantamos el servidor
     command: bash -c 'rm -rf node_modules && npm install && npm start'
     depends_on:
