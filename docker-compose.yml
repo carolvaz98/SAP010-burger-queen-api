@@ -1,3 +1,5 @@
+# Configuração do Docker Compose para implantar os serviços
+
 services:
   db:
     image: mysql:5.7 # Utilizando a imagem oficial do MySQL versão 5.7

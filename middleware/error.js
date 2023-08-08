@@ -1,3 +1,5 @@
+// Implementar middleware de tratamento de erros
+
 const httpErrors = {
   400: 'Bad request',
   401: 'Unauthorized',
