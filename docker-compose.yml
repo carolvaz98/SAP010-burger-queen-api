@@ -1,10 +1,9 @@
-# Configuração do Docker Compose para implantar os serviços
-
+version: '3'
 services:
   db:
-    image: mysql:5.7 # MySQL versão 5.7
-    command: --default-authentication-plugin=mysql_native_password # Para compatibilidade com algumas bibliotecas Node.js
-    restart: always # Reinicia o contêiner automaticamente em caso de falha ou reinicialização do host
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: senha_123
       MYSQL_DATABASE: mydatabase
@@ -22,23 +21,21 @@ services:
       PORT: 8080
       DB_URL: mysql://rote_db:senha_123@db/mydatabase
       JWT_SECRET: xxxxxxxx
-      ADMIN_EMAIL: admin@localhost
+      ADMIN_EMAIL: admin@db
       ADMIN_PASSWORD: changeme
     volumes:
-      - ./:/home/node/app # montamos el codigo en el HOME del usuario _node_
+      - ./:/home/node/app
     expose:
-      - 8080 # nuestra app corre en el puerto 8080
+      - 8080
     ports:
-      # mapeamos el puerto 8080 de nuestro contenedor al puerto 80 de nuestra
-      # máquina
       - 80:8080
-    # reinstalamos las dependencias y levantamos el servidor
     command: bash -c 'rm -rf node_modules && npm install && npm start'
     depends_on:
       - db
     networks:
       - public
       - private
+
 networks:
   public:
     internal: false
