@@ -2,31 +2,32 @@ const express = require('express');
 const config = require('./config');
 const authMiddleware = require('./middleware/auth');
 const errorHandler = require('./middleware/error');
-const routes = require('./routes');
+const customerRoutes = require('./routes/customerRoutes');
 const pkg = require('./package.json');
+const { sequelize } = require('./sequelize');
+const Sequelize = require('sequelize');
 
 const { port, dbUrl, secret } = config;
 const app = express();
 
-// TODO: Conexión a la Base de Datos (MongoDB o MySQL)
+// Import and set up models
+const Customer = require('./models/customer');
 
-app.set('config', config);
-app.set('pkg', pkg);
+// Import controllers
+const customerController = require('./controllers/customerController');
 
-// parse application/x-www-form-urlencoded
+// Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(authMiddleware(secret));
 
-// Registrar rutas
-routes(app, (err) => {
-  if (err) {
-    throw err;
-  }
+// Register routes
+app.use('/api', customerRoutes); // Use as rotas dos customers
 
-  app.use(errorHandler);
+// Error handling middleware
+app.use(errorHandler);
 
-  app.listen(port, () => {
-    console.info(`Porta de entrada ${port}`);
-  });
+// Start server
+app.listen(port, () => {
+  console.info(`Server listening on port ${port}`);
 });

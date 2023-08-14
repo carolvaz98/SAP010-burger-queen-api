@@ -1,33 +1,17 @@
-const auth = require('./auth');
-const users = require('./users');
-const products = require('./products');
-const orders = require('./orders');
+/* const express = require('express');
+const customerController = require('../controllers/customerController');
+const orderController = require('../controllers/orderController');
+const orderItemController = require('../controllers/orderItemController');
+const productController = require('../controllers/productController');
 
-const root = (app, next) => {
-  const pkg = app.get('pkg');
-  app.get('/', (req, res) => res.json({ name: pkg.name, version: pkg.version }));
-  app.all('*', (req, resp, nextAll) => nextAll(404));
-  return next();
-};
+module.exports = (app, sequelize) => {
+  const router = express.Router();
 
-// eslint-disable-next-line consistent-return
-const register = (app, routes, cb) => {
-  if (!routes.length) {
-    return cb();
-  }
+  // Defina as rotas usando os controladores
+  router.use('/customers', customerController(sequelize));
+  router.use('/orders', orderController(sequelize));
+  router.use('/order-items', orderItemController(sequelize));
+  router.use('/products', productController(sequelize));
 
-  routes[0](app, (err) => {
-    if (err) {
-      return cb(err);
-    }
-    return register(app, routes.slice(1), cb);
-  });
-};
-
-module.exports = (app, next) => register(app, [
-  auth,
-  users,
-  products,
-  orders,
-  root,
-], next);
+  app.use('/api', router);
+}; */
