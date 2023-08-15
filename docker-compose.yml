@@ -10,7 +10,7 @@ services:
       MYSQL_USER: rote_db
       MYSQL_PASSWORD: senha_123
     networks:
-      - private
+      - public
 
   node:
     image: node:12
@@ -34,7 +34,6 @@ services:
       - db
     networks:
       - public
-      - private
 
 networks:
   public:
