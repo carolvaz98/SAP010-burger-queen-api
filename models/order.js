@@ -8,8 +8,9 @@ const Order = sequelize.define('Order', {
     primaryKey: true,
   },
   status: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('pending', 'completed', 'cancelled'),
     allowNull: false,
+    defaultValue: 'pending',
   },
 });
 
