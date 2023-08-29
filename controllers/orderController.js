@@ -25,7 +25,7 @@ exports.updateOrder = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const updatedOrder = await Order.update(
+    await Order.update(
       { status },
       { where: { id } }
     );
