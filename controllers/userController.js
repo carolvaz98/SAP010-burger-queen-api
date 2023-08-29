@@ -38,12 +38,16 @@ exports.updateUser = async (req, res) => {
 
 exports.deleteUser = async (req, res) => {
   try {
+    console.log(req.params); // Mova o log para dentro da função deleteUser
     const { id } = req.params;
 
     await User.destroy({ where: { id } });
 
-    res.status(204).json();
+    res.status(204).json({ message: 'Usuário excluído com sucesso' });
   } catch (error) {
+    console.error("Erro ao excluir usuário:", error);
     res.status(500).json({ error: 'Erro ao excluir usuário' });
-  }
+  }  
 };
+
+

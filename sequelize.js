@@ -9,17 +9,10 @@ const sequelize = new Sequelize(database, user, password, {
   dialect: dialect,
 });
 
-// Importe os modelos
+// os modelos
 const User = require('./models/user');
-// Importe outros modelos, se houver
 
-// Defina as associações entre os modelos, se necessário
-// Exemplo:
-// User.hasMany(Order);
-// Order.belongsTo(User);
-
-// Sincronize os modelos com o banco de dados
-sequelize.sync({ force: true }) // Use force: true apenas durante o desenvolvimento para recriar as tabelas
+sequelize.sync({ force: config.environment === 'development' })
   .then(() => {
     console.log('Tabelas sincronizadas com o banco de dados.');
   })
