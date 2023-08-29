@@ -42,7 +42,7 @@ exports.deleteProduct = async (req, res) => {
 
     await Product.destroy({ where: { id } });
 
-    res.status(204).json();
+    res.status(204).json({ message: 'Usuário excluído com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir produto' });
   }

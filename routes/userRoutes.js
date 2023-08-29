@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/', userController.listUsers);
 router.post('/create', userController.createUser);
-router.put('/:userId', userController.updateUser);
-router.delete('/:userId', userController.deleteUser);
+router.put('/:id', userController.updateUser);
+router.delete('/:id', userController.deleteUser);
 
 module.exports = router;

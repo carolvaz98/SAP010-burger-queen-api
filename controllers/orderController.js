@@ -42,7 +42,7 @@ exports.deleteOrder = async (req, res) => {
 
     await Order.destroy({ where: { id } });
 
-    res.status(204).json();
+    res.status(204).json({ message: 'Usuário excluído com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir pedido' });
   }
