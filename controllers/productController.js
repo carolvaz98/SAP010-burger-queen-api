@@ -9,13 +9,29 @@ exports.listProducts = async (req, res) => {
   }
 };
 
+exports.productById = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const product = await Product.findOne({ where: { id: productId } });
+
+    if (!product) {
+      return res.status(404).json({ error: 'El producto solicitado no existe' });
+    }
+
+    return res.status(200).json(product);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
 exports.createProduct = async (req, res) => {
   try {
-    const { name, price } = req.body;
-    const newProduct = await Product.create({ name, price });
+    const { name, price, type, quantity } = req.body;
+    const newProduct = await Product.create({ name, price, type, quantity });
 
     res.status(201).json(newProduct);
   } catch (error) {
+    console.error('Erro ao criar produto:', error);
     res.status(500).json({ error: 'Erro ao criar produto' });
   }
 };
@@ -23,10 +39,10 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price } = req.body;
+    const { name, price, type, quantity } = req.body;
 
     await Product.update(
-      { name, price },
+      { name, price, type, quantity },
       { where: { id } }
     );
 
@@ -42,7 +58,7 @@ exports.deleteProduct = async (req, res) => {
 
     await Product.destroy({ where: { id } });
 
-    res.status(204).json({ message: 'Usuário excluído com sucesso' });
+    res.status(204).json({ message: 'Produto excluído com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir produto' });
   }
