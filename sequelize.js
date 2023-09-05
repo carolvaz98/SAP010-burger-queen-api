@@ -1,20 +1,26 @@
 const Sequelize = require('sequelize');
-const config = require('./config');
+const { dbConfig } = require('./config');
 
-const { database, user, password, host, port, dialect } = config.dbConfig;
+const {
+  database,
+  user,
+  password,
+  host,
+  port,
+  dialect,
+} = dbConfig;
 
-const sequelize = new Sequelize(database, user, password, {
-  host: host,
-  port: port,
-  dialect: dialect,
+const dbName = process.env.NODE_ENV === 'test' ? dbConfig.testDatabase : database;
+
+const sequelize = new Sequelize(dbName, user, password, {
+  host,
+  port,
+  dialect,
 });
 
-// os modelos
-const User = require('./models/user');
-
-sequelize.sync({ force: config.environment === 'development' })
+sequelize.sync({ force: process.env.NODE_ENV === 'development' })
   .then(() => {
-    console.log('Tabelas sincronizadas com o banco de dados.');
+    console.log('Tabelas sincronizadas com sucesso.');
   })
   .catch((err) => {
     console.error('Erro ao sincronizar tabelas:', err);

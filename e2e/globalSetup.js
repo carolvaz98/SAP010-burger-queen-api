@@ -1,5 +1,5 @@
 const path = require('path');
-const { spawn } = require('child_process');
+const childProcess = require("child_process");
 const kill = require('tree-kill');
 
 const config = require('../config');
@@ -108,7 +108,7 @@ module.exports = () => new Promise((resolve, reject) => {
   // TODO: Configurar DB de tests
 
   console.info('Staring local server...');
-  const child = spawn('npm', ['start', process.env.PORT || 8888], {
+  const child = childProcess.spawn('npm', ['start', process.env.PORT || 8888], {
     cwd: path.resolve(__dirname, '../'),
     stdio: ['ignore', 'pipe', 'pipe'],
   });

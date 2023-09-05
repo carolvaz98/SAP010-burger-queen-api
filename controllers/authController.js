@@ -1,40 +1,35 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Op } = require('sequelize');
 const User = require('../models/user');
 const { secret } = require('../config');
 
-exports.login = async (req, resp) => {
+exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return resp.status(400).json({ message: 'Bad request' });
+      return res.status(400).json({ message: 'Requisição inválida' });
     }
 
-    const user = await User.findOne({
-      where: {
-        email: {
-          [Op.eq]: email,
-        },
-      },
-    });
+    const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return resp.status(401).json({ message: 'Unauthorized' });
+      return res.status(401).json({ message: 'Usuário não encontrado' });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
+
     if (!passwordMatch) {
-      return resp.status(401).json({ message: 'Senha incorreta' });
+      return res.status(401).json({ message: 'Senha incorreta' });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, secret, {
-      expiresIn: '1h',
-    });
-    resp.status(200).json({ token });
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      secret,
+      { expiresIn: '2h' },
+    );
+    res.status(200).json({ token });
   } catch (error) {
-    console.error('Error:', error);
-    return resp.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };

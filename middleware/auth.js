@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = (secrets) => (req, resp, next) => {
+module.exports = (secrets) => (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization) {
@@ -18,7 +18,7 @@ module.exports = (secrets) => (req, resp, next) => {
   jwt.verify(token, secrets, (err, decodedToken) => {
     if (err) {
       console.error('Token verification failed:', err);
-      return resp.status(403).send('Acesso proibido');
+      return res.status(403).send('Acesso proibido');
     }
 
     console.info('Token verified:', decodedToken);
@@ -27,29 +27,23 @@ module.exports = (secrets) => (req, resp, next) => {
   });
 };
 
-module.exports.isAuthenticated = (req) => {
-  const { user } = req;
-  return user !== undefined;
-};
+module.exports.isAuthenticated = (req) => req.user !== undefined;
 
-module.exports.isAdmin = (req) => {
-  const { user } = req;
-  return user && user.role && user.role === 'admin';
-};
+module.exports.isAdmin = (req) => req.user && req.user.role && req.user.role === 'admin';
 
-module.exports.requireAuth = (req, resp, next) => {
+module.exports.requireAuth = (req, res, next) => {
   if (!module.exports.isAuthenticated(req)) {
-    return resp.status(401).send('Autenticação necessária');
+    return res.status(401).send('Autenticação necessária');
   }
   next();
 };
 
-module.exports.requireAdmin = (req, resp, next) => {
+module.exports.requireAdmin = (req, res, next) => {
   if (!module.exports.isAuthenticated(req)) {
-    return resp.status(401).send('Autenticação necessária');
+    return res.status(401).send('Autenticação necessária');
   }
   if (!module.exports.isAdmin(req)) {
-    return resp.status(403).send('Acesso proibido');
+    return res.status(403).send('Acesso proibido');
   }
   next();
 };

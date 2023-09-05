@@ -9,27 +9,37 @@ exports.listOrders = async (req, res) => {
   }
 };
 
-
 exports.orderById = async (req, res) => {
   try {
-    const orderId = req.params.orderId;
+    const { orderId } = req.params; // Corrigir para usar a desestruturação
     const order = await Order.findOne({ where: { id: orderId } });
 
     if (!order) {
-      return res.status(404).json({ error: 'La orden solicitada no existe' });
+      return res.status(404).json({ error: 'O pedido solicitado não existe' });
     }
 
     return res.status(200).json(order);
   } catch (error) {
-    return res.status(500).json({ error: 'Error interno del servidor' });
+    return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
 
 exports.createOrder = async (req, res) => {
   try {
-    const { status, request, client, entry_time, exit_time } = req.body;
-  
-    const newOrder = await Order.create({ status, request, client, entry_time, exit_time });
+    const {
+      client,
+      products,
+      status,
+      dateProcessed,
+    } = req.body;
+
+    const newOrder = await Order.create({
+      client,
+      products,
+      status,
+      dateProcessed,
+    });
+
     res.status(201).json(newOrder);
   } catch (error) {
     console.error('Erro ao criar pedido', error);
@@ -40,11 +50,21 @@ exports.createOrder = async (req, res) => {
 exports.updateOrder = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, request, client, entry_time, exit_time } = req.body;
+    const {
+      client,
+      products,
+      status,
+      dateProcessed,
+    } = req.body;
 
     await Order.update(
-      { status, request, client, entry_time, exit_time },
-      { where: { id } }
+      {
+        client,
+        products,
+        status,
+        dateProcessed,
+      },
+      { where: { id } },
     );
 
     res.status(200).json({ message: 'Pedido atualizado com sucesso' });
@@ -59,9 +79,8 @@ exports.deleteOrder = async (req, res) => {
 
     await Order.destroy({ where: { id } });
 
-    res.status(204).json({ message: 'Usuário excluído com sucesso' });
+    res.status(204).json({ message: 'Pedido excluído com sucesso' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao excluir pedido' });
   }
 };
-

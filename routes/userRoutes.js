@@ -1,13 +1,13 @@
 const express = require('express');
-const userController = require('../controllers/userController.js');
-const authMiddleware = require('../middleware/auth');
+const userController = require('../controllers/userController');
+const { requireAdmin, requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', authMiddleware(), userController.listUsers);
-router.get('/:id', authMiddleware(), userController.userById);
+router.get('/', requireAdmin, userController.listUsers);
+router.get('/:id', requireAuth, userController.userById);
 router.post('/create', userController.createUser);
-router.patch('/:id', authMiddleware(), userController.updateUser);
-router.delete('/:id', authMiddleware(), userController.deleteUser);
+router.put('/:id', requireAuth, userController.updateUser);
+router.delete('/:id', requireAdmin, userController.deleteUser);
 
 module.exports = router;

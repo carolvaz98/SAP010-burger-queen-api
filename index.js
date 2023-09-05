@@ -5,7 +5,7 @@ const errorHandler = require('./middleware/error');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const authRoutes = require('./routes/authRoutes'); // Adicione esta linha para incluir as rotas de autenticação
+const authRoutes = require('./routes/authRoutes');
 
 const { port, secret } = config;
 const app = express();
@@ -30,5 +30,4 @@ app.use(errorHandler);
 
 const PORT = port || 8080;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
 });
