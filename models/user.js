@@ -4,12 +4,8 @@ const sequelize = require('../sequelize');
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    defaultValue: DataTypes.UUIDV4,
   },
   email: {
     type: DataTypes.STRING,
@@ -21,9 +17,8 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM('user', 'admin'),
+    type: DataTypes.ENUM('admin', 'waiter', 'chef'),
     allowNull: false,
-    defaultValue: 'user', // padrão como 'user'
   },
 });
 
