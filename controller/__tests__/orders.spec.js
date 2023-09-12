@@ -1,13 +1,12 @@
-const Order = require('../../models/order'); // Certifique-se de importar o módulo real ou um mock adequado
+const Order = require('../../models/order');
 const {
   listOrders,
   orderById,
   createOrder,
   updateOrder,
   deleteOrder,
-} = require('../../controllers/orderController'); // Importe as funções que você deseja testar
+} = require('../../controllers/orderController');
 
-// Mock para Order.findAll
 jest.mock('../../models/order', () => ({
   findAll: jest.fn(),
   findOne: jest.fn(),
@@ -17,9 +16,14 @@ jest.mock('../../models/order', () => ({
 }));
 
 describe('Teste das funções relacionadas a pedidos', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('Deve listar todos os pedidos', async () => {
     // Mock dos dados do pedido
     const orders = [{ id: 1, status: 'Em andamento' }, { id: 2, status: 'Concluído' }];
+    const req = {};
     const res = {
       status: jest.fn(() => res),
       json: jest.fn(),
@@ -29,7 +33,7 @@ describe('Teste das funções relacionadas a pedidos', () => {
     Order.findAll.mockResolvedValue(orders);
 
     // Chamar a função listOrders
-    await listOrders({}, res);
+    await listOrders(req, res);
 
     // Verificar se o status e o JSON da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(200);
@@ -57,15 +61,34 @@ describe('Teste das funções relacionadas a pedidos', () => {
     expect(res.json).toHaveBeenCalledWith(order);
   });
 
+  it('Deve tratar erro ao buscar um pedido por ID', async () => {
+    // Mock da requisição com um ID inválido
+    const orderId = 999; // ID que não existe
+    const req = { params: { orderId } };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    // Configurar o mock do Order.findOne para retornar null (pedido não encontrado)
+    Order.findOne.mockResolvedValue(null);
+
+    // Chamar a função orderById
+    await orderById(req, res);
+
+    // Verificar se o status e o JSON da resposta são os esperados
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: 'O pedido solicitado não existe' });
+  });
+
   it('Deve criar um novo pedido', async () => {
     // Mock dos dados do pedido e da requisição
     const req = {
       body: {
-        status: 'Em andamento',
-        request: 'Hamburguer com batatas fritas',
         client: 'João',
-        entry_time: '12:00',
-        exit_time: '13:00',
+        products: 'Hamburguer com batatas fritas',
+        status: 'Em andamento',
+        dateProcessed: '12:00',
       },
     };
     const newOrder = { id: 3, ...req.body }; // O novo pedido criado
@@ -85,15 +108,36 @@ describe('Teste das funções relacionadas a pedidos', () => {
     expect(res.json).toHaveBeenCalledWith(newOrder);
   });
 
+  it('Deve tratar erro ao criar um novo pedido', async () => {
+    // Mock dos dados do pedido e da requisição
+    const req = {
+      body: {
+        // Dados inválidos para forçar um erro
+      },
+    };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    // Configurar o mock do Order.create para lançar um erro
+    Order.create.mockRejectedValue(new Error('Erro ao criar pedido'));
+
+    // Chamar a função createOrder
+    await createOrder(req, res);
+
+    // Verificar se o status e o JSON da resposta são os esperados
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao criar pedido' });
+  });
   it('Deve atualizar um pedido existente', async () => {
     // Mock dos dados do pedido, da requisição e do ID do pedido
     const orderId = 2;
     const updatedData = {
-      status: 'Concluído',
-      request: 'Hamburguer com queijo',
       client: 'Maria',
-      entry_time: '13:30',
-      exit_time: '14:00',
+      products: 'Hamburguer com queijo',
+      status: 'Concluído',
+      dateProcessed: '13:30',
     };
     const req = {
       params: { id: orderId },
@@ -113,6 +157,32 @@ describe('Teste das funções relacionadas a pedidos', () => {
 
     // Verificar se o mock do Order.update foi chamado com os parâmetros corretos
     expect(Order.update).toHaveBeenCalledWith(updatedData, { where: { id: orderId } });
+  });
+
+  it('Deve tratar erro ao atualizar um pedido', async () => {
+    // Mock dos dados da requisição e do ID do pedido
+    const orderId = 2;
+    const updatedData = {
+      // Dados inválidos para forçar um erro
+    };
+    const req = {
+      params: { id: orderId },
+      body: updatedData,
+    };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    // Configurar o mock do Order.update para lançar um erro
+    Order.update.mockRejectedValue(new Error('Erro ao atualizar pedido'));
+
+    // Chamar a função updateOrder
+    await updateOrder(req, res);
+
+    // Verificar se o status e o JSON da resposta são os esperados
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao atualizar pedido' });
   });
 
   it('Deve excluir um pedido existente', async () => {
@@ -135,5 +205,27 @@ describe('Teste das funções relacionadas a pedidos', () => {
 
     // Verificar se o mock do Order.destroy foi chamado com o ID correto
     expect(Order.destroy).toHaveBeenCalledWith({ where: { id: orderId } });
+  });
+
+  it('Deve tratar erro ao excluir um pedido', async () => {
+    // Mock do ID do pedido
+    const orderId = 2;
+    const req = {
+      params: { id: orderId },
+    };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    // Configurar o mock do Order.destroy para lançar um erro
+    Order.destroy.mockRejectedValue(new Error('Erro ao excluir pedido'));
+
+    // Chamar a função deleteOrder
+    await deleteOrder(req, res);
+
+    // Verificar se o status e o JSON da resposta são os esperados
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao excluir pedido' });
   });
 });

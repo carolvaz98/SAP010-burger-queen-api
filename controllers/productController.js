@@ -15,7 +15,7 @@ exports.productById = async (req, res) => {
     const product = await Product.findOne({ where: { id: productId } });
 
     if (!product) {
-      return res.status(404).json({ error: 'O producto solicitado não existe' });
+      return res.status(404).json({ error: 'O produto solicitado não existe' });
     }
 
     return res.status(200).json(product);
@@ -42,7 +42,6 @@ exports.createProduct = async (req, res) => {
 
     res.status(201).json(newProduct);
   } catch (error) {
-    console.error('Erro ao criar produto:', error);
     res.status(500).json({ error: 'Erro ao criar produto' });
   }
 };
