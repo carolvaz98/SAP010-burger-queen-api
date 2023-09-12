@@ -23,7 +23,7 @@ app.use(authMiddleware(secret));
 app.use('/users', userRoutes);
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
-app.use('/login', authRoutes);
+app.use('/auth', authRoutes);
 
 // Middleware para tratamento de erros
 app.use(errorHandler);
