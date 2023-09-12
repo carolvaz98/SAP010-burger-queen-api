@@ -1,11 +1,12 @@
-const User = require('../../models/user'); // Certifique-se de importar o módulo real ou um mock adequado
+const bcrypt = require('bcrypt');
+const User = require('../../models/user');
 const {
   listUsers,
   userById,
   createUser,
   updateUser,
   deleteUser,
-} = require('../../controllers/userController'); // Importe as funções que você deseja testar
+} = require('../../controllers/userController');
 
 // Mock para User.findOne
 jest.mock('../../models/user', () => ({
@@ -18,7 +19,6 @@ jest.mock('../../models/user', () => ({
 
 describe('Teste das funções relacionadas a usuários', () => {
   it('Deve listar todos os usuários', async () => {
-    // Mock dos dados dos usuários
     const users = [
       { id: 1, name: 'Usuário 1', email: 'usuario1@teste.com' },
       { id: 2, name: 'Usuário 2', email: 'usuario2@teste.com' },
@@ -28,19 +28,29 @@ describe('Teste das funções relacionadas a usuários', () => {
       json: jest.fn(),
     };
 
-    // Configurar o mock do User.findAll para retornar os usuários
     User.findAll.mockResolvedValue(users);
 
-    // Chamar a função listUsers
     await listUsers({}, res);
 
-    // Verificar se o status e o JSON da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(users);
   });
 
+  it('Deve tratar erro ao listar todos os usuários', async () => {
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    User.findAll.mockRejectedValue(new Error('Erro no banco de dados'));
+
+    await listUsers({}, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao listar usuários' });
+  });
+
   it('Deve buscar um usuário por ID', async () => {
-    // Mock dos dados do usuário e da requisição
     const userId = 1;
     const user = { id: userId, name: 'Usuário 1', email: 'usuario1@teste.com' };
     const req = { params: { id: userId } };
@@ -49,49 +59,92 @@ describe('Teste das funções relacionadas a usuários', () => {
       json: jest.fn(),
     };
 
-    // Configurar o mock do User.findOne para retornar o usuário
     User.findOne.mockResolvedValue(user);
 
-    // Chamar a função userById
     await userById(req, res);
 
-    // Verificar se o status e o JSON da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(user);
   });
 
-  it('Deve criar um novo usuário', async () => {
-    // Mock dos dados do usuário e da requisição
-    const req = {
-      body: {
-        name: 'Novo Usuário',
-        email: 'novousuario@teste.com',
-        password: 'senha',
-        role: 'user',
-      },
-    };
-    const newUser = { id: 3, ...req.body }; // O novo usuário criado
+  it('Deve lidar com usuário por ID não encontrado', async () => {
+    const userId = 2;
+    const req = { params: { id: userId } };
     const res = {
       status: jest.fn(() => res),
       json: jest.fn(),
     };
 
-    // Configurar o mock do User.create para retornar o novo usuário
+    User.findOne.mockResolvedValue(null);
+
+    await userById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Usuário não encontrado' });
+  });
+
+  it('Deve lidar com erro ao buscar usuário por ID', async () => {
+    const userId = 1;
+    const req = { params: { id: userId } };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    User.findOne.mockRejectedValue(new Error('Erro no banco de dados'));
+
+    await userById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro interno do servidor' });
+  });
+
+  it('Deve criar um novo usuário', async () => {
+    const req = {
+      body: {
+        email: 'novousuario@teste.com',
+        password: 'senha',
+        role: 'user',
+      },
+    };
+    const newUser = { id: 3, ...req.body };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
     User.create.mockResolvedValue(newUser);
 
-    // Chamar a função createUser
     await createUser(req, res);
 
-    // Verificar se o status e o JSON da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(newUser);
   });
 
+  it('Deve lidar com erro ao criar usuário', async () => {
+    const req = {
+      body: {
+        email: 'novousuario@teste.com',
+        password: 'senha',
+        role: 'user',
+      },
+    };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    User.create.mockRejectedValue(new Error('Erro no banco de dados'));
+
+    await createUser(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao criar usuário' });
+  });
+
   it('Deve atualizar um usuário existente', async () => {
-    // Mock dos dados do usuário, da requisição e do ID do usuário
     const userId = 2;
     const updatedData = {
-      name: 'Usuário Atualizado',
       email: 'usuarioatualizado@teste.com',
       password: 'novasenha',
       role: 'admin',
@@ -105,19 +158,33 @@ describe('Teste das funções relacionadas a usuários', () => {
       json: jest.fn(),
     };
 
-    // Chamar a função updateUser
     await updateUser(req, res);
 
-    // Verificar se o status e a mensagem da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ message: 'Usuário editado com sucesso' });
-
-    // Verificar se o mock do User.update foi chamado com os parâmetros corretos
     expect(User.update).toHaveBeenCalledWith(updatedData, { where: { id: userId } });
   });
 
+  it('Deve lidar com erro ao atualizar usuário', async () => {
+    const userId = 1;
+    const req = {
+      params: { id: userId },
+      body: {},
+    };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    User.update.mockRejectedValue(new Error('Erro no banco de dados'));
+
+    await updateUser(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao atualizar usuário' });
+  });
+
   it('Deve excluir um usuário existente', async () => {
-    // Mock do ID do usuário
     const userId = 2;
     const req = {
       params: { id: userId },
@@ -127,14 +194,28 @@ describe('Teste das funções relacionadas a usuários', () => {
       json: jest.fn(),
     };
 
-    // Chamar a função deleteUser
     await deleteUser(req, res);
 
-    // Verificar se o status e a mensagem da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(204);
     expect(res.json).toHaveBeenCalledWith({ message: 'Usuário excluído com sucesso' });
-
-    // Verificar se o mock do User.destroy foi chamado com o ID correto
     expect(User.destroy).toHaveBeenCalledWith({ where: { id: userId } });
+  });
+
+  it('Deve lidar com erro ao excluir usuário', async () => {
+    const userId = 1;
+    const req = {
+      params: { id: userId },
+    };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    User.destroy.mockRejectedValue(new Error('Erro no banco de dados'));
+
+    await deleteUser(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao excluir usuário' });
   });
 });

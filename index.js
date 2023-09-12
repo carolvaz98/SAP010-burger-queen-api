@@ -28,6 +28,6 @@ app.use('/login', authRoutes);
 // Middleware para tratamento de erros
 app.use(errorHandler);
 
-const PORT = port || 8080;
+const PORT = port || 8888;
 app.listen(PORT, () => {
 });

@@ -11,7 +11,7 @@ exports.listOrders = async (req, res) => {
 
 exports.orderById = async (req, res) => {
   try {
-    const { orderId } = req.params; // Corrigir para usar a desestruturação
+    const { orderId } = req.params;
     const order = await Order.findOne({ where: { id: orderId } });
 
     if (!order) {
@@ -42,7 +42,6 @@ exports.createOrder = async (req, res) => {
 
     res.status(201).json(newOrder);
   } catch (error) {
-    console.error('Erro ao criar pedido', error);
     res.status(500).json({ error: 'Erro ao criar pedido' });
   }
 };

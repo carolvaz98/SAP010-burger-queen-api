@@ -28,7 +28,6 @@ exports.userById = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const {
-      name,
       email,
       password,
       role,
@@ -36,7 +35,6 @@ exports.createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
-      name,
       email,
       password: hashedPassword,
       role,
@@ -52,7 +50,6 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      name,
       email,
       password,
       role,
@@ -60,7 +57,6 @@ exports.updateUser = async (req, res) => {
 
     await User.update(
       {
-        name,
         email,
         password,
         role,

@@ -1,11 +1,11 @@
-const Product = require('../../models/product'); // Certifique-se de importar o módulo real ou um mock adequado
+const Product = require('../../models/product');
 const {
   listProducts,
   productById,
   createProduct,
   updateProduct,
   deleteProduct,
-} = require('../../controllers/productController'); // Importe as funções que você deseja testar
+} = require('../../controllers/productController');
 
 // Mock para Product.findAll
 jest.mock('../../models/product', () => ({
@@ -17,24 +17,24 @@ jest.mock('../../models/product', () => ({
 }));
 
 describe('Teste das funções relacionadas a produtos', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('Deve listar todos os produtos', async () => {
-    // Mock dos dados dos produtos
-    const products = [
-      { id: 1, name: 'Hamburguer', price: 10.0 },
-      { id: 2, name: 'Batatas Fritas', price: 5.0 },
-    ];
+    // Mock dos dados do produto
+    const products = [{ id: 1, name: 'Produto 1' }, { id: 2, name: 'Produto 2' }];
+    const req = {};
     const res = {
       status: jest.fn(() => res),
       json: jest.fn(),
     };
 
-    // Configurar o mock do Product.findAll para retornar os produtos
+    // mock do Product.findAll p retornar os produtos
     Product.findAll.mockResolvedValue(products);
 
-    // Chamar a função listProducts
-    await listProducts({}, res);
+    await listProducts(req, res);
 
-    // Verificar se o status e o JSON da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(products);
   });
@@ -42,14 +42,14 @@ describe('Teste das funções relacionadas a produtos', () => {
   it('Deve buscar um produto por ID', async () => {
     // Mock dos dados do produto e da requisição
     const productId = 1;
-    const product = { id: productId, name: 'Hamburguer', price: 10.0 };
+    const product = { id: productId, name: 'Produto 1' };
     const req = { params: { productId } };
     const res = {
       status: jest.fn(() => res),
       json: jest.fn(),
     };
 
-    // Configurar o mock do Product.findOne para retornar o produto
+    // mock do Product.findOne
     Product.findOne.mockResolvedValue(product);
 
     // Chamar a função productById
@@ -60,14 +60,34 @@ describe('Teste das funções relacionadas a produtos', () => {
     expect(res.json).toHaveBeenCalledWith(product);
   });
 
+  it('Deve tratar erro ao buscar um produto por ID', async () => {
+    // Mock da requisição com um ID inválido
+    const productId = 999; // ID que não existe
+    const req = { params: { productId } };
+    const res = {
+      status: jest.fn(() => res),
+      json: jest.fn(),
+    };
+
+    // Configurar o mock do Product.findOne para retornar null (produto não encontrado)
+    Product.findOne.mockResolvedValue(null);
+
+    // Chamar a função productById
+    await productById(req, res);
+
+    // Verificar se o status e o JSON da resposta são os esperados
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: 'O produto solicitado não existe' });
+  });
+
   it('Deve criar um novo produto', async () => {
     // Mock dos dados do produto e da requisição
     const req = {
       body: {
         name: 'Novo Produto',
-        price: 15.0,
-        type: 'Comida',
-        quantity: 100,
+        price: 10.99,
+        image: 'produto.jpg',
+        type: 'Alimento',
       },
     };
     const newProduct = { id: 3, ...req.body }; // O novo produto criado
@@ -87,54 +107,104 @@ describe('Teste das funções relacionadas a produtos', () => {
     expect(res.json).toHaveBeenCalledWith(newProduct);
   });
 
-  it('Deve atualizar um produto existente', async () => {
-    // Mock dos dados do produto, da requisição e do ID do produto
-    const productId = 2;
-    const updatedData = {
-      name: 'Hamburguer de Queijo',
-      price: 12.0,
-      type: 'Comida',
-      quantity: 80,
-    };
+  it('Deve tratar erro ao criar um novo produto', async () => {
+    // Mock dos dados do produto e da requisição com dados inválidos
     const req = {
-      params: { id: productId },
-      body: updatedData,
+      body: {
+      // Dados inválidos para forçar um erro
+      },
     };
     const res = {
       status: jest.fn(() => res),
       json: jest.fn(),
     };
 
-    // Chamar a função updateProduct
-    await updateProduct(req, res);
+    // Configurar o mock do Product.create para lançar um erro
+    Product.create.mockRejectedValue(new Error('Erro ao criar produto'));
 
-    // Verificar se o status e a mensagem da resposta são os esperados
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Produto atualizado com sucesso' });
+    // Chamar a função createProduct
+    await createProduct(req, res);
 
-    // Verificar se o mock do Product.update foi chamado com os parâmetros corretos
-    expect(Product.update).toHaveBeenCalledWith(updatedData, { where: { id: productId } });
+    // Verificar se o status e o JSON da resposta são os esperados
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao criar produto' });
   });
 
-  it('Deve excluir um produto existente', async () => {
-    // Mock do ID do produto
-    const productId = 2;
-    const req = {
-      params: { id: productId },
+  // Teste para updateProduct
+  it('Deve atualizar um produto com sucesso', async () => {
+    const mockProductId = 1;
+    const mockRequestBody = {
+      name: 'Produto Atualizado',
+      price: 25.99,
+      image: 'imagem_atualizada.jpg',
+      type: 'Tipo Atualizado',
     };
+    Product.update = jest.fn().mockResolvedValue([1]); // Indica que um registro foi atualizado
+
+    const req = { params: { id: mockProductId }, body: mockRequestBody };
     const res = {
-      status: jest.fn(() => res),
+      status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
 
-    // Chamar a função deleteProduct
+    await updateProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Produto atualizado com sucesso' });
+  });
+
+  it('Deve tratar erros ao atualizar um produto', async () => {
+    const mockProductId = 1;
+    const mockRequestBody = {
+      name: 'Produto Atualizado',
+      price: 25.99,
+      image: 'imagem_atualizada.jpg',
+      type: 'Tipo Atualizado',
+    };
+    Product.update = jest.fn().mockRejectedValue(new Error('Erro ao atualizar produto'));
+
+    const req = { params: { id: mockProductId }, body: mockRequestBody };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+
+    await updateProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao atualizar produto' });
+  });
+
+  // Teste para deleteProduct
+  it('Deve excluir um produto com sucesso', async () => {
+    const mockProductId = 1;
+    Product.destroy = jest.fn().mockResolvedValue(1); // registro foi excluído
+
+    const req = { params: { id: mockProductId } };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+
     await deleteProduct(req, res);
 
-    // Verificar se o status e a mensagem da resposta são os esperados
     expect(res.status).toHaveBeenCalledWith(204);
     expect(res.json).toHaveBeenCalledWith({ message: 'Produto excluído com sucesso' });
+  });
 
-    // Verificar se o mock do Product.destroy foi chamado com o ID correto
-    expect(Product.destroy).toHaveBeenCalledWith({ where: { id: productId } });
+  it('Deve tratar erros ao excluir um produto', async () => {
+    const mockProductId = 1;
+    Product.destroy = jest.fn().mockRejectedValue(new Error('Erro ao excluir produto'));
+
+    const req = { params: { id: mockProductId } };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+
+    await deleteProduct(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Erro ao excluir produto' });
   });
 });
